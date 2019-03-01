@@ -25,50 +25,54 @@ F101010
 888-4567 3
 */
 
+// use hash list to reduce running time
+
 
 int main() {
-	int num, i, *iArr, pre, now, repeat = 0;
+	int num, i, *iArr, pre, now, repeat = 1;
 	string s;
-	
+
 	cin >> num;
-	iArr = new int[num];
+	iArr = new int[12];
+	//int iArr[12];
 	if (num < 2) {
 		cout << "No duplicates. " << endl;
 	}
 
 	for (i = 0; i < num; i++) {
+		iArr[i] = 0;
 		cin >> s;
 		for (int n = 0; n < s.length(); n++) {
 			if (s[n] >= '0' && s[n] <= '9') {
-				iArr[n] *= 10;
-				iArr[n] += s[n] - '0';
+				iArr[i] *= 10;
+				iArr[i] += s[n] - '0';
 			}
 			else if (s[n] >= 'A' && s[n] <= 'Z') {
-				iArr[n] *= 10;
+				iArr[i] *= 10;
 				switch (s[n]) {
 				case 'A': case 'B': case 'C':
-					iArr[n] += 2;
+					iArr[i] += 2;
 					break;
 				case 'D': case 'E': case 'F':
-					iArr[n] += 3;
+					iArr[i] += 3;
 					break;
 				case 'G': case 'H': case 'I':
-					iArr[n] += 4;
+					iArr[i] += 4;
 					break;
 				case 'J': case 'K': case 'L':
-					iArr[n] += 5;
+					iArr[i] += 5;
 					break;
 				case 'M': case 'N': case 'O':
-					iArr[n] += 6;
+					iArr[i] += 6;
 					break;
 				case 'P': case 'R': case 'S':
-					iArr[n] += 7;
+					iArr[i] += 7;
 					break;
 				case 'T': case 'U': case 'V':
-					iArr[n] += 8;
+					iArr[i] += 8;
 					break;
 				case 'W': case 'X': case 'Y':
-					iArr[n] += 9;
+					iArr[i] += 9;
 					break;
 				}
 			}
@@ -81,12 +85,12 @@ int main() {
 		pre = iArr[i - 1];
 		now = iArr[i];
 		if (pre == now) repeat++;
-		else if (repeat > 0) {
+		else if (repeat > 1) {
 			cout << pre / 10000 << '-' << pre % 10000 << ' ' << repeat << endl;
-			repeat = 0;
+			repeat = 1;
 		}
 	}
-	if (repeat > 0) {
+	if (repeat > 1) {
 		cout << pre / 10000 << '-' << pre % 10000 << ' ' << repeat << endl;
 	}
 

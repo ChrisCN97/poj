@@ -11,12 +11,9 @@ multi() to calculate one time multiplication
 add the dot
 */
 
-// 10^2
-// deleting trailing zeros causes dot*power error
-
 vector<int> multi(const vector<int> result, const vector<int> numList) {
-	vector<int> temp(numList.size()+ result.size());
-	int t, jin=0, i, j;
+	vector<int> temp(numList.size() + result.size());
+	int t, jin = 0, i, j;
 	for (i = 0; i < numList.size(); i++) {
 		for (j = 0; j < result.size(); j++) {
 			t = numList[i] * result[j] + jin;
@@ -38,9 +35,9 @@ vector<int> multi(const vector<int> result, const vector<int> numList) {
 	return temp;
 }
 
-int p1001() {
+int main() {
 	string number;
-	int power, length, dot, rLen, i;
+	int power, dot, cDot, dZero, rLen, i;
 	vector<int> numList, result;
 
 	const int Length = 6;
@@ -48,6 +45,7 @@ int p1001() {
 	while (cin >> number >> power) {
 		numList.clear();
 		numList.reserve(Length - 1);
+		dot = 0;
 		for (i = Length - 1; i >= 0; i--) {
 			if (number[i] != '.') {
 				numList.push_back(number[i] - '0');
@@ -56,7 +54,7 @@ int p1001() {
 				dot = Length - 1 - i;
 			}
 		}
-		while (numList.back () == 0) numList.pop_back();
+		while (numList.back() == 0) numList.pop_back();
 
 		result.clear();
 		result = numList;
@@ -64,22 +62,33 @@ int p1001() {
 			result = multi(result, numList);
 		}
 
-		while (result.front() == 0) result.erase(begin(result));
+		dZero = 0;
+		while (result.front() == 0) {
+			result.erase(result.begin());
+			dZero++;
+		}
+		cDot = dot * power - dZero;
 		rLen = result.size();
 
-		if (dot * power >= rLen) {
+		if (cDot >= rLen) {
 			cout << '.';
-			for (i = 0; i < dot * power - rLen; i++) cout << '0';
+			for (i = 0; i < cDot - rLen; i++) cout << '0';
 			for (i = rLen - 1; i >= 0; i--) {
+				cout << result[i];
+			}
+		}
+		else if (cDot > 0) {
+			for (i = rLen - 1; i >= 0; i--) {
+				if (i == cDot - 1) cout << '.';
 				cout << result[i];
 			}
 		}
 		else {
 			for (i = rLen - 1; i >= 0; i--) {
-				if (i == dot * power - 1) cout << '.';
 				cout << result[i];
 			}
-		}		
+			for (i = 0; i > cDot; i--) cout << '0';
+		}
 		cout << endl;
 	}
 	return 0;

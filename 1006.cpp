@@ -22,21 +22,26 @@ Case 6: the next triple peak occurs in 10789 days.
 
 // cycle: 23, 28, 33
 // 5 20 34 => 5 20 1
+// cout << "Case " << count << ": the next triple peak occurs in " << nd - d << " days." << endl;
 
 #include <iostream>
 using namespace std;
 
 int main() {
 	const int PC = 23, EC = 28, IC = 33;
-	int p, e, i, d, pcc, ecc, icc;
-	while(true) {
+	int p, e, i, d, pb, eb, ib, nd, count=0;
+	while (true) {
 		cin >> p >> e >> i >> d;
 		if (p == -1 && e == -1 && i == -1 && d == -1) break;
-		pcc = p % PC;
-		ecc = e % EC;
-		icc = i % IC;
-		for (int i = 1;; i++) {
-
+		count++;
+		pb = p % PC;
+		eb = e % EC;
+		ib = i % IC;
+		for (nd = d;; nd++) {
+			if ((nd - ib) % IC == 0 && nd > d && (nd - pb) % PC == 0 && (nd - eb) % EC == 0) {
+				cout << "Case " << count << ": the next triple peak occurs in " << nd - d << " days." << endl;
+				break;
+			}
 		}
 	}
 

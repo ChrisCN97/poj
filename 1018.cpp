@@ -2,14 +2,15 @@
 // 2019.3.11
 
 /* input:
-2 3
-3 100 25 150 35 80 25
-2 120 80 155 40
-2 100 100 120 110
+2
 3
 3 100 25 150 35 80 25
 2 120 80 155 40
 2 100 100 120 110
+2
+1 150 55
+2 110 80 135 40
+
 */
 
 /* output:
@@ -37,7 +38,7 @@ int main() {
 		for (i = 0; i < device; i++) {
 			dp[i] = new int[400];
 			for (int n = 0; n < 400; n++) dp[i][n] = INT_MAX;
-		} 
+		}
 		for (e = 0; e < device; e++) {
 			cin >> manu;
 			while (manu--) {
@@ -47,11 +48,11 @@ int main() {
 					for (i = 0; i < 400; i++) {
 						if (dp[e - 1][i] < INT_MAX) {
 							temp = min(i, b);
-							dp[e][temp] = min(dp[e][temp], dp[e - 1][temp] + p);
+							dp[e][temp] = min(dp[e][temp], dp[e - 1][i] + p);
 						}
 					}
 				}
-			}	
+			}
 		}
 		result = 0;
 		for (i = 0; i < 400; i++) {

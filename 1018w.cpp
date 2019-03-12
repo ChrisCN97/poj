@@ -2,7 +2,11 @@
 // 2019.3.11
 
 /* input:
-1 3
+2 3
+3 100 25 150 35 80 25
+2 120 80 155 40
+2 100 100 120 110
+3
 3 100 25 150 35 80 25
 2 120 80 155 40
 2 100 100 120 110
@@ -18,32 +22,47 @@
 
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
+#include <climits>
 using namespace std;
 
 int main() {
-	int caseNum, device, manu;
-	double B, P, rate = 0, tb, tp, tr, b, p;
+	int caseNum, e, device, manu, i, b, p, temp;
+	double result, tr;
 
-	cin >> caseNum >> device;
+	cin >> caseNum;
 	while (caseNum--) {
-		B = 0;
-		P = 0;
-		while (device--) {
+		cin >> device;
+		int **dp = new int*[device];
+		for (i = 0; i < device; i++) {
+			dp[i] = new int[400];
+			for (int n = 0; n < 400; n++) dp[i][n] = INT_MAX;
+		} 
+		for (e = 0; e < device; e++) {
 			cin >> manu;
-			rate = 0;
 			while (manu--) {
-				cin >> tb >> tp;
-				tr = tb / tp;
-				if (rate < tr) {
-					rate = tr;
-					b = tb;
-					p = tp;
+				cin >> b >> p;
+				if (e == 0) dp[e][b] = min(dp[e][b], p);
+				else {
+					for (i = 0; i < 400; i++) {
+						if (dp[e - 1][i] < INT_MAX) {
+							temp = min(i, b);
+							dp[e][temp] = min(dp[e][temp], dp[e - 1][temp] + p);
+						}
+					}
 				}
-			}
-			B += b;
-			P += p;
+			}	
 		}
-		cout << setiosflags(ios::fixed) << setprecision(3) << B / P << endl;
+		result = 0;
+		for (i = 0; i < 400; i++) {
+			if (dp[device - 1][i] < INT_MAX) {
+				temp = dp[device - 1][i];
+				tr = double(i) / double(temp);
+				result = max(result, tr);
+			}
+		}
+		cout << setiosflags(ios::fixed) << setprecision(3) << result << endl;
+		delete dp;
 	}
 
 	return 0;

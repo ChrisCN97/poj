@@ -74,7 +74,6 @@ Final score: 0, with 150 balls remaining.
 
 #include <iostream>
 #include <string>
-#include <vector>
 #include <cmath>
 using namespace std;
 
@@ -88,48 +87,103 @@ struct Point {
 	int y;
 };
 
-struct PointSet {
-	vector<Point> set;
-	Point lbPoint;
-};
-
 Map map[15][10];
 int pointCount;
+int area;
+Point lbPoint;
 
-bool dfs(int x, int y, PointSet &pointSet) {
-	Point point;
-	point.x = x;
-	point.y = y;
-	map[x][y + 1].check = true;
-	if(pointSet.set.size()==0)
-		pointSet.lbPoint = point;
-	else {
-		for (int i = 0; i < pointSet.set.size(); i++) {
-			if (x < pointSet.set[i].x && y < pointSet.set[i].y)
-				pointSet.lbPoint = point;
+bool bfs(int x, int y) {
+	int head = 0, tail = 1;
+	Point pSet[151];
+	pSet[head].x = x;
+	pSet[head].y = y;
+	lbPoint.x = x;
+	lbPoint.y = y;
+	area = 0;
+	map[x][y].check = true;
+	while (head < tail) {
+		int x = pSet[head].x;
+		int y = pSet[head].y;
+		Point point;
+		point.x = x;
+		point.y = y;
+		
+		if (x < lbPoint.x)
+			lbPoint = point;
+		else if (x == lbPoint.x && y < lbPoint.y)
+			lbPoint = point;
+		area++;
+
+		if (y != 9 && !map[x][y + 1].check && map[x][y + 1].color == map[x][y].color) {
+			pSet[tail].x = x;
+			pSet[tail++].y = y + 1;
+			map[x][y + 1].check = true;
 		}
+		if (y != 0 && !map[x][y - 1].check && map[x][y - 1].color == map[x][y].color) {
+			pSet[tail].x = x;
+			pSet[tail++].y = y - 1;
+			map[x][y - 1].check = true;
+		}
+		if (x != 0 && !map[x - 1][y].check && map[x - 1][y].color == map[x][y].color) {
+			pSet[tail].x = x - 1;
+			pSet[tail++].y = y;
+			map[x - 1][y].check = true;
+		}
+		if (x != 14 && !map[x + 1][y].check && map[x + 1][y].color == map[x][y].color) {
+			pSet[tail].x = x + 1;
+			pSet[tail++].y = y;
+			map[x + 1][y].check = true;
+		}
+
+		++head;
 	}
-	pointSet.set.push_back(point);
-	pointCount++;
-	if (y != 9 && !map[x][y + 1].check && map[x][y + 1].color == map[x][y].color)
-		dfs(x, y + 1, pointSet);
-	if (y != 0 && !map[x][y - 1].check && map[x][y - 1].color == map[x][y].color)
-		dfs(x, y + 1, pointSet);
-	if (x != 0 && !map[x - 1][y].check && map[x - 1][y].color == map[x][y].color)
-		dfs(x - 1, y, pointSet);
-	if (x != 14 && !map[x + 1][y].check && map[x + 1][y].color == map[x][y].color)
-		dfs(x + 1, y, pointSet);
 
 	return true;
+}
+
+void bfsClear(int x, int y) {
+	Point pSet[151];
+	int head = 0, tail = 1;
+	pSet[head].x = x;
+	pSet[head].y = y;
+	while (head < tail) {
+		int x = pSet[head].x;
+		int y = pSet[head].y;
+		map[x][y].check = false;
+
+		if (y != 9 && map[x][y + 1].check && map[x][y + 1].color == map[x][y].color) {
+			pSet[tail].x = x;
+			pSet[tail++].y = y + 1;
+			map[x][y + 1].check = false;
+		}
+		if (y != 0 && map[x][y - 1].check && map[x][y - 1].color == map[x][y].color) {
+			pSet[tail].x = x;
+			pSet[tail++].y = y - 1;
+			map[x][y - 1].check = false;
+		}
+		if (x != 0 && map[x - 1][y].check && map[x - 1][y].color == map[x][y].color) {
+			pSet[tail].x = x - 1;
+			pSet[tail++].y = y;
+			map[x - 1][y].check = false;
+		}
+		if (x != 14 && map[x + 1][y].check && map[x + 1][y].color == map[x][y].color) {
+			pSet[tail].x = x + 1;
+			pSet[tail++].y = y;
+			map[x + 1][y].check = false;
+		}
+
+		map[x][y].color = -1;
+		pointCount++;
+		++head;
+	}
 }
 
 int main() {
 	int caseNum, x, y, i, score, turn;
 	string s;
-	vector<PointSet> pointSetList;
 	cin >> caseNum;
 	for (turn = 1; turn <= caseNum; turn++) {
-		for (y = 14; y >= 0; y--) {
+		for (y = 9; y >= 0; y--) {
 			cin >> s;
 			for (x = 0; x < 15; x++) {
 				switch (s[x]) {
@@ -151,42 +205,43 @@ int main() {
 		cout << "Game " << turn << ":\n" << endl;
 
 		int move = 0;
-		while (true) {			
+		while (true) {
 			for (y = 0; y < 10; y++) {
 				for (x = 0; x < 15; x++) {
 					map[x][y].check = false;
 				}
 			}
-			pointSetList.clear();
 			move++;
-
+			int maxarea = 0;
+			Point lbMaxPoint;
 			for (y = 0; y < 10; y++) {
 				for (x = 0; x < 15; x++) {
 					if (map[x][y].color == -1 || map[x][y].check)
 						continue;
-					PointSet pointSet;
-					dfs(x, y, pointSet);
-					if (pointSet.set.size() < 2)
+					bfs(x, y);
+					if (area < 2)
 						continue;
-					pointSetList.push_back(pointSet);
+					if (area > maxarea) {
+						maxarea = area;
+						lbMaxPoint = lbPoint;
+					}
+					else if (area == maxarea) {
+						if(lbPoint.x< lbMaxPoint.x)
+							lbMaxPoint = lbPoint;
+						else if(lbPoint.x == lbMaxPoint.x && lbPoint.y < lbMaxPoint.y)
+							lbMaxPoint = lbPoint;
+					}
 				}
 			}
 
-			if (pointSetList.size() == 0)
+			if (maxarea == 0) {
+				if (pointCount == 150)
+					score += 1000;
 				break;
-
-			int m = 0, maxi;
-
-			for (i = 0; i < pointSetList.size(); i++) {
-				if (pointSetList[i].set.size() > m) {
-					m = pointSetList[i].set.size();
-					maxi = i;
-				}
 			}
-			PointSet result;
+			
 			char ch;
-			result = pointSetList[maxi];
-			switch (map[result.lbPoint.x][result.lbPoint.y].color) {
+			switch (map[lbMaxPoint.x][lbMaxPoint.y].color) {
 			case 0:
 				ch = 'R';
 				break;
@@ -197,13 +252,13 @@ int main() {
 				ch = 'B';
 				break;
 			}
-			int sc = pow(m - 2, 2);
-			cout << "Move " << move << " at(" << result.lbPoint.x << ", " << result.lbPoint.y << ") : removed " << result.set.size() << " balls of color "
+			int sc = pow(maxarea - 2, 2);
+			cout << "Move " << move << " at (" << lbMaxPoint.y + 1 << "," << lbMaxPoint.x + 1 << "): removed " << maxarea << " balls of color "
 				<< ch << ", got " << sc << " points." << endl;
 			score += sc;
-			
-			for (i = 0; i < result.set.size(); i++) 
-				map[result.set[i].x][result.set[i].y].color = -1;
+
+			bfsClear(lbMaxPoint.x, lbMaxPoint.y);
+
 			int nr = 0, pr = 0, nc = 0, pc = 0;
 			for (nc = 0, pc = 0; nc < 15; nc++) {
 				for (nr = 0, pr = 0; nr < 10; nr++) {
@@ -229,10 +284,8 @@ int main() {
 			}
 		}
 
-		cout << "Final score: " << score << ", with " << 150 - pointCount << " balls remaining." << endl;
-
-		if (caseNum != turn)
-			cin >> s;
+		cout << "Final score: " << score << ", with " << 150 - pointCount << " balls remaining." << endl << endl;
+			
 	}
 
 	return 0;

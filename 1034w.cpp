@@ -33,7 +33,7 @@ int master, inters, *ans;
 double **ilen, *mlen;
 
 int dfs(int n) {
-	int i, pmax = 0, pcount;
+	int i, pmax = 0, pcount = 0;
 	Point a, b;
 	bool flag = false;
 	a = mRoute[n - 1];
@@ -52,21 +52,21 @@ int dfs(int n) {
 		}	
 		if (!iRoute[i].check && ilen[n][i] <= 2 * mlen[n]) {
 			iRoute[i].check = true;
-			if (n == master) return 1;
+			if (n == master - 1) {
+				ans[n] = i;
+				return 1;
+			} 
 			pcount = dfs(n + 1);
 			if (pmax < pcount) {
 				pmax = pcount;
 				ans[n] = i;
 				if (!flag) flag = true;
 			}
-			else {
-				pcount--;
-			}
 		}
 	}
-	if (n == master) return 1;
-	if (!flag) dfs(n + 1);
-	return pmax;
+	if (n == master - 1) return 0;
+	if (!flag) return dfs(n + 1);
+	return pmax + 1;
 }
 
 int main() {
@@ -87,7 +87,7 @@ int main() {
 		for (int n = 0; n < inters; n++) 
 			ilen[i][n] = 0;
 		mlen[i] = 0;
-		ans[i] = 0;
+		ans[i] = -1;
 	}
 	for (i = 0; i < inters; i++) {
 		cin >> x >> y;
@@ -97,8 +97,15 @@ int main() {
 		p.check = false;
 		iRoute[i] = p;
 	}
-	dfs(1);
-
+	int max = dfs(1);
+	cout << max + master << endl;
+	cout << mRoute[0].x << " " << mRoute[0].y;
+	for (i = 1; i < master; i++) {
+		if (ans[i] != -1)
+			cout << " " << iRoute[ans[i]].x << " " << iRoute[ans[i]].y;
+		cout << " " << mRoute[i].x << " " << mRoute[i].y;
+	}
+	cout << endl;
 
 	return 0;
 }

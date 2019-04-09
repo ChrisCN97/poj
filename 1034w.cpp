@@ -1,10 +1,16 @@
 // poj 1034
-// 2019.3.21
+// 2019.4.7
 
 /* input:
 4 5
 1 4 5 7 5 2 -2 4
 -4 -2 3 9 1 2 -1 3 8 -3
+2 0
+1 4 2 4
+
+2 1
+-1000 -1000 1000 1000
+0 1000
 */
 
 /* output:
@@ -12,100 +18,129 @@
 1 4 3 9 5 7 5 2 1 2 -2 4
 */
 
-// possibly self-intersecting
-// Ralph can travel at a speed that is up to two times greater than his master's speed.
-// the dog visits at most one interesting place before meeting his master again
-// The latter should be visited (i.e. listed in the route description) at most once
-// If there are several such routes, then you may write any of them.
-
+// 
 #include <iostream>
 #include <cmath>
+#include <vector>
 using namespace std;
 
-struct Point {
+struct mPoint {
 	int x;
 	int y;
-	bool check;
+	vector<int> iPList;
+	int i;
 };
 
-Point *mRoute, *iRoute;
-int master, inters, *ans;
-double **ilen, *mlen;
+struct iPoint {
+	int x;
+	int y;
+	int m;
+};
 
-int dfs(int n) {
-	int i, pmax = 0, pcount = 0;
-	Point a, b;
-	bool flag = false;
-	a = mRoute[n - 1];
-	b = mRoute[n];
-	for (i = 0; i < inters; i++) {
-		if (ilen[n][i] == 0) {
-			Point c = iRoute[i];
-			ilen[n][i] = sqrt(pow(c.x - a.x, 2) + pow(c.y - a.y, 2)) + sqrt(pow(c.x - b.x, 2) + pow(c.y - b.y, 2));
+int mNum, iNum;
+mPoint *mRoute;
+iPoint *iRoute;
+
+bool change(int m) {
+	for (int i = mRoute[m].iPList.size() - 1; i >= 0; i--) {
+		int ins = mRoute[m].iPList[i];
+		if (iRoute[ins].m == 0) {
+			mRoute[m].i = ins;
+			iRoute[ins].m = m;
+			return true;
 		}
-		if (mlen[n] == 0) {
-			mlen[n] = sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2));
+		int pIRM = iRoute[ins].m;
+		mRoute[m].i = ins;
+		mRoute[pIRM].i = -1;
+		iRoute[ins].m = m;
+		if (change(pIRM)) {
+			return true;
 		}
-		if (n == 1) {
-			for(int x=0; x<inters; x++)
-				iRoute[x].check = false;
-		}	
-		if (!iRoute[i].check && ilen[n][i] <= 2 * mlen[n]) {
-			iRoute[i].check = true;
-			if (n == master - 1) {
-				ans[n] = i;
-				return 1;
-			} 
-			pcount = dfs(n + 1);
-			if (pmax < pcount) {
-				pmax = pcount;
-				ans[n] = i;
-				if (!flag) flag = true;
-			}
-		}
+		iRoute[ins].m = pIRM;
+		mRoute[pIRM].i = ins;
+		mRoute[m].i = -1;
 	}
-	if (n == master - 1) return 0;
-	if (!flag) return dfs(n + 1);
-	return pmax + 1;
+	return false;
 }
 
 int main() {
-	int i, x, y;
-	cin >> master >> inters;
-	mRoute = new Point[master];
-	iRoute = new Point[inters];
-	ilen = new double*[master];
-	mlen = new double[master];
-	ans = new int[master];
-	for (i = 0; i < master; i++) {
-		cin >> x >> y;
-		Point p;
-		p.x = x;
-		p.y = y;
-		mRoute[i] = p;
-		ilen[i] = new double[inters];
-		for (int n = 0; n < inters; n++) 
-			ilen[i][n] = 0;
-		mlen[i] = 0;
-		ans[i] = -1;
+	int i, n, x, y, maxInters = 0;
+	cin >> mNum >> iNum;
+	mRoute = new mPoint[mNum];
+	if (iNum == 0) {
+		for (i = 0; i < mNum; i++) {
+			cin >> x >> y;
+			mPoint m;
+			m.x = x;
+			m.y = y;
+			mRoute[i] = m;
+		}
 	}
-	for (i = 0; i < inters; i++) {
-		cin >> x >> y;
-		Point p;
-		p.x = x;
-		p.y = y;
-		p.check = false;
-		iRoute[i] = p;
+	else {
+		iRoute = new iPoint[iNum];
+		for (i = 0; i < mNum; i++) {
+			cin >> x >> y;
+			mPoint m;
+			m.x = x;
+			m.y = y;
+			m.i = -1;
+			mRoute[i] = m;
+		}
+		for (i = 0; i < iNum; i++) {
+			cin >> x >> y;
+			iPoint m;
+			m.x = x;
+			m.y = y;
+			m.m = 0;
+			iRoute[i] = m;
+		}
+
+		double mLen, L1, L2;
+		for (i = 1; i < mNum; i++) {
+			mLen = sqrt(pow(mRoute[i].x - mRoute[i - 1].x, 2) + pow(mRoute[i].y - mRoute[i - 1].y, 2));
+			for (n = 0; n < iNum; n++) {
+				L1 = sqrt(pow(iRoute[n].x - mRoute[i - 1].x, 2) + pow(iRoute[n].y - mRoute[i - 1].y, 2));
+				L2 = sqrt(pow(iRoute[n].x - mRoute[i].x, 2) + pow(iRoute[n].y - mRoute[i].y, 2));
+				if (L1 + L2 <= 2 * mLen) {
+					mRoute[i].iPList.push_back(n);
+				}
+			}
+		}
+		for (i = 1; i < mNum; i++) {
+			for (n = 0; n < mRoute[i].iPList.size(); n++) {
+				int ins = mRoute[i].iPList[n];
+				if (iRoute[ins].m == 0) {
+					mRoute[i].i = ins;
+					iRoute[ins].m = i;
+					maxInters++;
+					break;
+				}
+			}
+		}
+
+		if (maxInters != mNum - 1) {
+			for (i = 1; i < mNum; i++) {
+				if (mRoute[i].i == -1) {
+					if (change(i)) {
+						maxInters++;
+					}
+				}
+			}
+		}
 	}
-	int max = dfs(1);
-	cout << max + master << endl;
-	cout << mRoute[0].x << " " << mRoute[0].y;
-	for (i = 1; i < master; i++) {
-		if (ans[i] != -1)
-			cout << " " << iRoute[ans[i]].x << " " << iRoute[ans[i]].y;
-		cout << " " << mRoute[i].x << " " << mRoute[i].y;
+	cout << maxInters + mNum << endl;
+	cout << mRoute[0].x << " " << mRoute[0].y << " ";
+	for (i = 1; i < mNum; i++) {
+		if (iNum != 0 && mRoute[i].i != -1)
+			cout << iRoute[mRoute[i].i].x << " " << iRoute[mRoute[i].i].y << " ";
+		cout << mRoute[i].x << " " << mRoute[i].y;
+		if (i == mNum - 1) {
+			cout << endl;
+		}
+		else {
+			cout << " ";
+		}
 	}
-	cout << endl;
 
 	return 0;
 }

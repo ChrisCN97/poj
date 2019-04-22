@@ -1,5 +1,5 @@
 // poj 1034
-// 2019.4.7
+// 2019.4.14
 
 /* input:
 4 5
@@ -20,119 +20,83 @@
 
 // 
 #include <iostream>
-#include <cmath>
-#include <vector>
+#include <math.h>
 using namespace std;
 
-struct mPoint {
+struct Point {
 	int x;
 	int y;
-	vector<int> iPList;
-	int i;
 };
 
-struct iPoint {
-	int x;
-	int y;
-	int m;
-};
-
-int mNum, iNum;
-mPoint *mRoute;
-iPoint *iRoute;
+int mNum, iNum, m2i[100], i2m[100];
+Point mRoute[100];
+Point iRoute[100];
+bool arrive[100][100];
 
 bool change(int m) {
-	for (int i = mRoute[m].iPList.size() - 1; i >= 0; i--) {
-		int ins = mRoute[m].iPList[i];
-		if (iRoute[ins].m == 0) {
-			mRoute[m].i = ins;
-			iRoute[ins].m = m;
-			return true;
+	for (int i = 0; i < iNum; i++) {
+		if (arrive[m][i]) {
+			if (i2m[i] == -1) {
+				m2i[m] = i;
+				i2m[i] = m;
+				return true;
+			}
+			int pm = i2m[i];
+			m2i[m] = i;
+			i2m[i] = m;
+			m2i[pm] = -1;
+			if (change(pm)) {
+				return true;
+			}
+			m2i[pm] = i;
+			m2i[m] = -1;
+			i2m[i] = pm;
 		}
-		int pIRM = iRoute[ins].m;
-		mRoute[m].i = ins;
-		mRoute[pIRM].i = -1;
-		iRoute[ins].m = m;
-		if (change(pIRM)) {
-			return true;
-		}
-		iRoute[ins].m = pIRM;
-		mRoute[pIRM].i = ins;
-		mRoute[m].i = -1;
 	}
 	return false;
 }
 
 int main() {
-	int i, n, x, y, maxInters = 0;
+	int maxInters = 0;
 	cin >> mNum >> iNum;
-	mRoute = new mPoint[mNum];
-	if (iNum == 0) {
-		for (i = 0; i < mNum; i++) {
-			cin >> x >> y;
-			mPoint m;
-			m.x = x;
-			m.y = y;
-			mRoute[i] = m;
-		}
+	for (int i = 0; i < mNum; i++) {
+		cin >> mRoute[i].x >> mRoute[i].y;
 	}
-	else {
-		iRoute = new iPoint[iNum];
-		for (i = 0; i < mNum; i++) {
-			cin >> x >> y;
-			mPoint m;
-			m.x = x;
-			m.y = y;
-			m.i = -1;
-			mRoute[i] = m;
+	if (iNum != 0) {
+		memset(i2m, 0, sizeof(i2m));
+		memset(m2i, 0, sizeof(m2i));
+		for (int i = 0; i < iNum; i++) {
+			cin >> iRoute[i].x >> iRoute[i].y;
+			i2m[i] = -1;
 		}
-		for (i = 0; i < iNum; i++) {
-			cin >> x >> y;
-			iPoint m;
-			m.x = x;
-			m.y = y;
-			m.m = 0;
-			iRoute[i] = m;
+		for (int i = 0; i < mNum; i++) {
+			for (int n = 0; n < iNum; n++) {
+				arrive[i][n] = false;
+			}
+			m2i[i] = -1;
 		}
-
-		double mLen, L1, L2;
-		for (i = 1; i < mNum; i++) {
-			mLen = sqrt(pow(mRoute[i].x - mRoute[i - 1].x, 2) + pow(mRoute[i].y - mRoute[i - 1].y, 2));
-			for (n = 0; n < iNum; n++) {
-				L1 = sqrt(pow(iRoute[n].x - mRoute[i - 1].x, 2) + pow(iRoute[n].y - mRoute[i - 1].y, 2));
-				L2 = sqrt(pow(iRoute[n].x - mRoute[i].x, 2) + pow(iRoute[n].y - mRoute[i].y, 2));
+		memset(arrive, false, sizeof(arrive));
+		for (int i = 1; i < mNum; i++) {
+			double mLen = sqrt(double((mRoute[i].x - mRoute[i - 1].x)*(mRoute[i].x - mRoute[i - 1].x)) + double((mRoute[i].y - mRoute[i - 1].y)*(mRoute[i].y - mRoute[i - 1].y)));
+			for (int n = 0; n < iNum; n++) {
+				double L1 = sqrt(double((iRoute[n].x - mRoute[i - 1].x)*(iRoute[n].x - mRoute[i - 1].x)) + double((iRoute[n].y - mRoute[i - 1].y)*(iRoute[n].y - mRoute[i - 1].y)));
+				double L2 = sqrt(double((iRoute[n].x - mRoute[i].x)*(iRoute[n].x - mRoute[i].x)) + double((iRoute[n].y - mRoute[i].y)*(iRoute[n].y - mRoute[i].y)));
 				if (L1 + L2 <= 2 * mLen) {
-					mRoute[i].iPList.push_back(n);
+					arrive[i][n] = true;
 				}
 			}
 		}
-		for (i = 1; i < mNum; i++) {
-			for (n = 0; n < mRoute[i].iPList.size(); n++) {
-				int ins = mRoute[i].iPList[n];
-				if (iRoute[ins].m == 0) {
-					mRoute[i].i = ins;
-					iRoute[ins].m = i;
-					maxInters++;
-					break;
-				}
-			}
-		}
-
-		if (maxInters != mNum - 1) {
-			for (i = 1; i < mNum; i++) {
-				if (mRoute[i].i == -1) {
-					if (change(i)) {
-						maxInters++;
-					}
-				}
+		for (int i = 1; i < mNum; i++) {
+			if (change(i)) {
+				maxInters++;
 			}
 		}
 	}
 	cout << maxInters + mNum << endl;
 	cout << mRoute[0].x << " " << mRoute[0].y << " ";
-	for (i = 1; i < mNum; i++) {
-		if (iNum != 0 && mRoute[i].i != -1)
-			cout << iRoute[mRoute[i].i].x << " " << iRoute[mRoute[i].i].y << " ";
+	for (int i = 1; i < mNum; i++) {
+		if (iNum != 0 && m2i[i] != -1)
+			cout << iRoute[m2i[i]].x << " " << iRoute[m2i[i]].y << " ";
 		cout << mRoute[i].x << " " << mRoute[i].y;
 		if (i == mNum - 1) {
 			cout << endl;
